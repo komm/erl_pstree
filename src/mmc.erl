@@ -49,15 +49,18 @@ visual(GlobalPrefix, LocalPrefix, [ _ | Tail])->
 pstree(Pid) when is_port(Pid)->
   {"<PORT>",[[]]};
 pstree(Pid) when is_pid(Pid)->
-  {group_leader, GroupLeader} = erlang:process_info(Pid,group_leader),
+  {group_leader, GroupLeader} = rpc:call(node(Pid),erlang,process_info,[Pid, group_leader]), %%erlang:process_info(Pid,group_leader),
   case {ets:lookup(mmc, Pid), true} of
   {[], true} -> 
     ets:insert(mmc, {Pid, GroupLeader}),
-    case erlang:process_info(Pid) of
-      undefined -> process_undefined;
+    case rpc:call(node(Pid), erlang, process_info, [Pid]) of
+      undefined -> {process_undefined, [[]]};
+      {badrpc,nodedown} -> {process_undefined, [[]]};
       _Parameters ->
-        {name(Pid, erlang:process_info(Pid, registered_name)),
-  	  links(Pid, erlang:process_info(Pid, links))
+        {name(Pid, rpc:call(node(Pid),erlang,process_info,[Pid, registered_name])),
+        %%{name(Pid, erlang:process_info(Pid, registered_name)),
+  	  %%links(Pid, erlang:process_info(Pid, links))
+  	  links(Pid, rpc:call(node(Pid),erlang,process_info,[Pid, links]))
         }
     end;
   _ -> []

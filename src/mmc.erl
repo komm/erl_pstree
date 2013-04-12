@@ -29,14 +29,14 @@ visual(GlobalPrefix, LocalPrefix, [ {Pid, LinkedPid} | Tail])->
     io:format('~s~s+---~s~n',[GlobalPrefix, LocalPrefix, Pid]);
   PidList when is_list(PidList)->
     io:format('~s~s+---~s---+~n',[GlobalPrefix, LocalPrefix, Pid]),
-    NewGlobalPrefix = 
+    [NewGlobalPrefix, Diff] = 
     case Tail of
-    [] -> GlobalPrefix ++ lists:map(fun(_)-> $\  end, LocalPrefix);
-    [[]] -> GlobalPrefix ++ lists:map(fun(_)-> $\  end, LocalPrefix);
+    [] -> [GlobalPrefix ++ lists:map(fun(_)-> $\  end, LocalPrefix), 1];
+    [[]] -> [GlobalPrefix ++ lists:map(fun(_)-> $\  end, LocalPrefix), 1];
     _ -> 
-      GlobalPrefix ++ lists:map(fun(_)->$\  end, LocalPrefix) ++ [$|]
+      [GlobalPrefix ++ lists:map(fun(_)->$\  end, LocalPrefix) ++ [$|], 0]
     end,
-    visual(NewGlobalPrefix, lists:duplicate(length(Pid)+7," "), LinkedPid);
+    visual(NewGlobalPrefix, lists:duplicate(length(Pid)+6+Diff," "), LinkedPid);
   _ -> ok
   end,
   visual(GlobalPrefix, LocalPrefix, Tail)

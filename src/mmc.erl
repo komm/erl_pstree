@@ -46,10 +46,11 @@ visual(GlobalPrefix, LocalPrefix, [ _ | Tail])->
 .
 
 -spec pstree(Pid :: list() | pid())-> process_undefined | term().
-pstree(Pid) when is_port(Pid)->
-  {"<PORT>",[[]]};
+pstree(Port) when is_port(Port)->
+  {name, PortName} = rpc:call(node(Port),erlang,port_info,[Port, name]),
+  {"<PORT: "++PortName ++ ">",[[]]};
 pstree(Pid) when is_pid(Pid)->
-  {group_leader, GroupLeader} = rpc:call(node(Pid),erlang,process_info,[Pid, group_leader]), %%erlang:process_info(Pid,group_leader),
+  {group_leader, GroupLeader} = rpc:call(node(Pid),erlang,process_info,[Pid, group_leader]),
   case {ets:lookup(mmc, Pid), true} of
   {[], true} -> 
     ets:insert(mmc, {Pid, GroupLeader}),

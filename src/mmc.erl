@@ -1,13 +1,21 @@
 -module(mmc).
 -author('komm@siphost.su').
 
--export([s/0, s/1, start/0, start/1, pstree/1]).
+-export([s/0, s/1, start/0, start/1, pstree/1, pstree_struct/1]).
 
 name(Pid, {registered_name,List})->
   name(Pid, List);
 name(Pid, []) -> 
   pid_to_list(Pid);
 name(_Pid, Name) when is_atom(Name) ->
+  atom_to_list(Name)
+.
+
+name_struct(Pid, {registered_name,List})->
+  name_struct(Pid, List);
+name_struct(Pid, []) -> 
+  pid_to_list(Pid);
+name_struct(_Pid, Name) when is_atom(Name) ->
   atom_to_list(Name)
 .
 
@@ -19,6 +27,17 @@ links(Pid, [Link|Links])->
   case ets:lookup(mmc, Pid) of
   [{_, Link}] -> [];
   _ -> [pstree(Link)|links(Pid, Links)]
+  end
+.
+
+links_struct(Pid, {links,List})->
+  links_struct(Pid, List);
+links_struct(_, [])->
+  [];
+links_struct(Pid, [Link|Links])->
+  case ets:lookup(mmc, Pid) of
+  [{_, Link}] -> [];
+  _ -> [pstree_struct(Link)|links_struct(Pid, Links)]
   end
 .
 
@@ -59,8 +78,6 @@ pstree(Pid) when is_pid(Pid)->
       {badrpc,nodedown} -> {process_undefined, [[]]};
       _Parameters ->
         {name(Pid, rpc:call(node(Pid),erlang,process_info,[Pid, registered_name])),
-        %%{name(Pid, erlang:process_info(Pid, registered_name)),
-  	  %%links(Pid, erlang:process_info(Pid, links))
   	  links(Pid, rpc:call(node(Pid),erlang,process_info,[Pid, links]))
         }
     end;
@@ -68,6 +85,27 @@ pstree(Pid) when is_pid(Pid)->
   end
 .
 
+pstree_struct(Port) when is_port(Port)->
+  {name, PortName} = rpc:call(node(Port),erlang,port_info,[Port, name]),
+  {struct, [{"<PORT: "++PortName ++ ">",[[]]}]};
+pstree_struct(Pid) when is_pid(Pid)->
+  {group_leader, GroupLeader} = rpc:call(node(Pid),erlang,process_info,[Pid, group_leader]),
+  case {ets:lookup(mmc, Pid), true} of
+  {[], true} -> 
+    ets:insert(mmc, {Pid, GroupLeader}),
+    case rpc:call(node(Pid), erlang, process_info, [Pid]) of
+      undefined -> {process_undefined, [[]]};
+      {badrpc,nodedown} -> {process_undefined, [[]]};
+      _Parameters ->
+	{struct, [
+          { name_struct(Pid, rpc:call(node(Pid),erlang,process_info,[Pid, registered_name])),
+    	    links_struct(Pid, rpc:call(node(Pid),erlang,process_info,[Pid, links]))
+	  }
+        ]}
+    end;
+  _ -> []
+  end
+.
 -spec s()-> ok.
 -spec s(Pid :: list() | pid())-> ok.
 s()-> start().

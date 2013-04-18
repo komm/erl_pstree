@@ -42,7 +42,7 @@ links_struct(Pid, [Link|Links])->
 .
 
 visual(_GlobalPrefix, _LocalPrefix, [])-> ok;
-visual(GlobalPrefix, LocalPrefix, [ {Pid, LinkedPid} | Tail])->
+visual(GlobalPrefix, LocalPrefix, [ {struct, [{Pid, LinkedPid}]} | Tail])->
   case LinkedPid of
   [[]] -> 
     io:format('~s~s+---~s~n',[GlobalPrefix, LocalPrefix, Pid]);
@@ -119,7 +119,7 @@ start(Pid) when is_list(Pid)->
   start(list_to_pid(Pid));
 start(Pid) when is_pid(Pid)->
   ets:new(mmc,[ set , public,named_table]),
-  Tree = pstree(Pid),
+  Tree = pstree_struct(Pid),
   visual("", "", [Tree]),
   ets:delete(mmc),
   ok

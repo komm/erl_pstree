@@ -24,5 +24,14 @@ start_link() ->
 %% ===================================================================
 
 init([]) ->
+    application:start(crypto),
+    application:start(ranch),
+    application:start(cowboy),
+    application:start(mimetypes),
+    Dispatch = cowboy_router:compile([
+       %% {URIHost, list({URIPath, Handler, Opts})}
+       {'_', [{'_', handle_pstree, []}]}
+    ]),
+    cowboy:start_http(httP_tree_listner, 100, [{port, 8080}], [{env, [{dispatch, Dispatch}]}]),
     {ok, { {one_for_one, 5, 10}, []} }.
 

@@ -1,5 +1,5 @@
 REBAR = ./rebar
 all:
-	${REBAR} compile
+	${REBAR} get-deps compile
 clean:
 	${REBAR} clean

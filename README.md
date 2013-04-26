@@ -8,7 +8,7 @@ Usage from erlang cli:
   mmc:s(Pid :: list() | pid())
 
 Usage from http-json:
-GET /tree HTTP/1.0
+GET /tree.json HTTP/1.0
 
 HTTP/1.1 200 OK
 Server: nginx/0.8.53

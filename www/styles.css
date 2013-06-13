@@ -1,0 +1,19 @@
+.contain-to-grid .top-bar {
+  margin-bottom: 0; }
+
+body {
+  padding-top: 70px;
+  padding-bottom: 60px; }
+
+#footer {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  color: #cccccc;
+  background: white;
+  line-height: 2.5em;
+  border-top: 1px solid #eeeeee; }
+
+#content ul {
+  margin-left: 2em;
+  margin-bottom: 0; }

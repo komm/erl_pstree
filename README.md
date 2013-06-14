@@ -1,25 +1,46 @@
-erl_pstree
-==========
+# erl_pstree
 
 Erlang process tree tools. (as *NIX pstree)
 
-Usage from erlang cli:
-  mmc:s() 
-  mmc:s(Pid :: list() | pid())
+## Usage
 
-Usage from http-json:
-GET /tree.json HTTP/1.0
+### 1. Compile
 
-HTTP/1.1 200 OK
-Server: nginx/0.8.53
-Content-Type: application/json
+**TODO**
 
-{
-  "pid_name":[
-    { "pid_name1" : [ {"pid_name3":""}, ... ]},
-    { "pid_name2" : "" }
-    ...
-  ]
-}
+### 2. Run
+
+### Start with shell script
+
+### Usage from erlang cli
+
+    mmc:s()
+    mmc:s(Pid :: list() | pid())
+
+### Usage via http request
+
+**Request**
+
+    GET /tree.json
 
 
+**Response (in json)**
+
+    {
+      "pid_name":[
+        { "pid_name1" : [ {"pid_name3":""}, ... ]},
+        { "pid_name2" : "" }
+        ...
+      ]
+    }
+
+## Runtime dependencies
+
+* [Erlang R16B](http://www.erlang.org/)
+
+## Development dependencies
+
+* [Erlang R16B](http://www.erlang.org/)
+* [Slim](http://slim-lang.com/)
+* [Sass](http://sass-lang.com/)
+* [Coffeescript](http://coffeescript.org/)

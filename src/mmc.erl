@@ -25,7 +25,13 @@ links(_, [])->
   [];
 links(Pid, [Link|Links])->
   case ets:lookup(mmc, Pid) of
-  [{_, Link}] -> [];
+  [{_, Link, 0}]-> 
+        ets:update_element(mmc, Pid, {3, 1}),
+        [pstree(Link)|links(Pid, Links)]
+  ;
+  [{_, Link, _}]-> 
+        error_logger:info_report([found_group_leader, Pid, Link]), 
+        [];
   _ -> [pstree(Link)|links(Pid, Links)]
   end
 .
@@ -36,7 +42,13 @@ links_struct(_, [])->
   [];
 links_struct(Pid, [Link|Links])->
   case ets:lookup(mmc, Pid) of
-  [{_, Link}] -> [];
+  [{_, Link, 0}]-> 
+        ets:update_element(mmc, Pid, {3, 1}),
+        [pstree_struct(Link)|links_struct(Pid, Links)]
+  ;
+  [{_, Link}] -> 
+        error_logger:info_report([found_group_leader, Pid, Link]), 
+        [];
   _ -> [pstree_struct(Link)|links_struct(Pid, Links)]
   end
 .
@@ -72,13 +84,14 @@ pstree(Pid) when is_pid(Pid)->
   {group_leader, GroupLeader} = rpc:call(node(Pid),erlang,process_info,[Pid, group_leader]),
   case {ets:lookup(mmc, Pid), true} of
   {[], true} -> 
-    ets:insert(mmc, {Pid, GroupLeader}),
+    ets:insert(mmc, {Pid, GroupLeader, 0}),
     case rpc:call(node(Pid), erlang, process_info, [Pid]) of
       undefined -> {process_undefined, [[]]};
       {badrpc,nodedown} -> {process_undefined, [[]]};
       _Parameters ->
-        {name(Pid, rpc:call(node(Pid),erlang,process_info,[Pid, registered_name])),
-  	  links(Pid, rpc:call(node(Pid),erlang,process_info,[Pid, links]))
+        {
+            name(Pid, rpc:call(node(Pid),erlang,process_info,[Pid, registered_name])),
+            links(Pid, rpc:call(node(Pid),erlang,process_info,[Pid, links]))
         }
     end;
   _ -> []
@@ -92,15 +105,17 @@ pstree_struct(Pid) when is_pid(Pid)->
   {group_leader, GroupLeader} = rpc:call(node(Pid),erlang,process_info,[Pid, group_leader]),
   case {ets:lookup(mmc, Pid), true} of
   {[], true} -> 
-    ets:insert(mmc, {Pid, GroupLeader}),
+    ets:insert(mmc, {Pid, GroupLeader, 0}),
     case rpc:call(node(Pid), erlang, process_info, [Pid]) of
-      undefined -> {process_undefined, [[]]};
-      {badrpc,nodedown} -> {process_undefined, [[]]};
-      _Parameters ->
-	{struct, [
+    undefined -> 
+        {process_undefined, [[]]};
+    {badrpc,nodedown} -> 
+        {process_undefined, [[]]};
+    _Parameters ->
+        {struct, [
           { name_struct(Pid, rpc:call(node(Pid),erlang,process_info,[Pid, registered_name])),
-    	    links_struct(Pid, rpc:call(node(Pid),erlang,process_info,[Pid, links]))
-	  }
+            links_struct(Pid, rpc:call(node(Pid),erlang,process_info,[Pid, links]))
+          }
         ]}
     end;
   _ -> []
